@@ -4,15 +4,19 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};//CARACTER DE FLECHA PARA PANTALLA
 int REBOTE=45;
 
+volatile int pulso=0; 
+int pulsoAnterior=999;
+
 int MENU_INICIO=1;
 int ANTERIOR = 999;
 volatile int POSICION = 0;
-
+int salida_FR=0;
 
 int MENU_FR=0;
 int PAGINA_FR=0;
 int ANTERIOR_FR = 999;
 volatile int POSICION_FR = 20;
+int salida_VC=0;
 
 int MENU_VC=0;
 int PAGINA_VC=0;
@@ -23,6 +27,7 @@ int MENU_IE=0;
 int PAGINA_IE=0;
 int ANTERIOR_IE = 999;
 volatile int POSICION_IE = 0;
+int salida_IE=0;
 
 
 int A = 2;      //variable A a pin digital 2 (DT en modulo)
@@ -31,17 +36,23 @@ int B = 3;        //variable B a pin digital 3 (CLK en modulo)
 // almacena valor anterior de la variable POSICION
  // variable POSICION con valor inicial de 50 y definida
 
-#define push 10
+#define push 19
 
 void setup() {
 
   pinMode(A, INPUT);    // A como entrada
   pinMode(B, INPUT);    // B como entrada
+   pinMode (push,INPUT); 
   Serial.begin(9600);   // incializacion de comunicacion serie a 9600 bps
+
+
+
+    attachInterrupt(digitalPinToInterrupt(push),enter, CHANGE);// interrupcion sobre pin A con
   attachInterrupt(digitalPinToInterrupt(A),encoder, LOW);// interrupcion sobre pin A con
 
   
-  pinMode (push,INPUT); 
+  
+ 
   
   lcd.init();                 //Init the LCD
   lcd.backlight();            //Activate backlight
@@ -68,66 +79,67 @@ void setup() {
 }
 
 void loop() {
+  
 
 //---------------------------------LECTURA DE ENCODER MENU INICIAL---------------------------------------------------------
   if (POSICION != ANTERIOR) { // si el valor de POSICION es distinto de ANTERIOR
-    Serial.println(POSICION); // imprime valor de POSICION
+   // Serial.println(POSICION); // imprime valor de POSICION
     ANTERIOR = POSICION ; // asigna a ANTERIOR el valor actualizado de POSICION
    lcd.clear();
   }
 //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
   
   if (POSICION_FR != ANTERIOR_FR) { // si el valor de POSICION es distinto de ANTERIOR
-    Serial.println(POSICION_FR); // imprime valor de POSICION
+   // Serial.println(POSICION_FR); // imprime valor de POSICION
     ANTERIOR_FR = POSICION_FR ; // asigna a ANTERIOR el valor actualizado de POSICION
    lcd.clear();
   }
   //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
   
   if (POSICION_VC != ANTERIOR_VC) { // si el valor de POSICION es distinto de ANTERIOR
-    Serial.println(POSICION_VC); // imprime valor de POSICION
+   // Serial.println(POSICION_VC); // imprime valor de POSICION
     ANTERIOR_VC = POSICION_VC ; // asigna a ANTERIOR el valor actualizado de POSICION
    lcd.clear();
   }
   //----------------------------------LECTURA DE ENCODER MENU RELACION I/E-----------------------------------------
   
   if (POSICION_IE != ANTERIOR_IE) { // si el valor de POSICION es distinto de ANTERIOR
-    Serial.println(POSICION_IE); // imprime valor de POSICION
+   // Serial.println(POSICION_IE); // imprime valor de POSICION
     ANTERIOR_IE = POSICION_IE; // asigna a ANTERIOR el valor actualizado de POSICION
    lcd.clear();
   }
+ //----------------------------------LECTURA DE PULSO-----------------------------------------
+  
 
+if (pulso != pulsoAnterior) { // si el valor de POSICION es distinto de ANTERIOR
+ lcd.clear();
+ 
+    //Serial.println("pulso");
+    // imprime valor de POSICION
+    pulsoAnterior = pulso ; // asigna a ANTERIOR el valor actualizado de POSICION
+     
+   
+  }
   switch(POSICION){
 //-------------------------------CASO FRECUENCIA RESPIRATORIA--------------------------------
      case 0:
-if(digitalRead(push)==0){
-    delay(REBOTE);
-  lcd.clear();
-  PAGINA_FR=1;
 
-  }
 if(PAGINA_FR==1){
+
   MENU_FR=1;
   MENU_INICIO=0;
-  
-lcd.setCursor(5,0);
+  salida_FR=1;
+  lcd.setCursor(5,0);
   lcd.print("FRECUENCIA");
   lcd.setCursor(4,1);
   lcd.print("RESPIRATORIA");
   lcd.setCursor(9,2);
   lcd.print(POSICION_FR);
-  if(digitalRead(push)==0){
-     delay(REBOTE);
-  lcd.clear();
-  PAGINA_FR=0;
-  MENU_FR=0;
-  MENU_INICIO=1;
 
-  }
 
 }else{
 
-  
+  salida_FR=0;
   lcd.setCursor(0,0);
   lcd.write(0);  
   lcd.print("Frecuencia Resp.");
@@ -141,32 +153,21 @@ lcd.setCursor(5,0);
      break;
  //-------------------------------CASO VOLUMEN CORRIENTE--------------------------------
      case 1:
-if(digitalRead(push)==0){
-  delay(REBOTE);
-  lcd.clear();
-  PAGINA_VC=1;
-  
-  }
+
 if(PAGINA_VC==1){
   MENU_VC=1;
   MENU_INICIO=0;
-  
+  salida_VC=1;
 lcd.setCursor(5,0);
   lcd.print("VOLUMEN");
   lcd.setCursor(4,1);
   lcd.print("CORRIENTE");
   lcd.setCursor(9,2);
   lcd.print(POSICION_VC);
-  if(digitalRead(push)==0){
-  lcd.clear();
-  PAGINA_VC=0;
-  MENU_VC=0;
-  MENU_INICIO=1;
- delay(REBOTE);
-  }
+
 
 }else{
-  
+    salida_VC=0;
   lcd.setCursor(0,0);
   lcd.print(" Frecuencia Resp.");
   lcd.setCursor(0,1); 
@@ -180,16 +181,11 @@ lcd.setCursor(5,0);
      break;
  //-----------------------------------CASO VOLUMEN CORRIENTE----------------------------    
      case 2:
- if(digitalRead(push)==0){
-  delay(REBOTE);
-  lcd.clear();
-  PAGINA_IE=1;
-  
-  }
+
 if(PAGINA_IE==1){
   MENU_IE=1;
   MENU_INICIO=0;
- 
+ salida_IE=1;
 if(POSICION_IE==0){
   lcd.setCursor(4,0);
   lcd.print("RELACION I/E");
@@ -202,25 +198,11 @@ if(POSICION_IE==0){
    lcd.print(" 1:3");
    lcd.setCursor(12,3);
    lcd.print(" 1:4");
-    if(digitalRead(push)==0){
-       delay(REBOTE);
-  lcd.clear();
-  PAGINA_IE=0;
-  MENU_IE=0;
-  MENU_INICIO=1;
 
-  }
 }
 
 if(POSICION_IE==1){
-      if(digitalRead(push)==0){
-         delay(REBOTE);
-  lcd.clear();
-  PAGINA_IE=0;
-  MENU_IE=0;
-  MENU_INICIO=1;
-
-  }
+ 
  lcd.setCursor(4,0);
   lcd.print("RELACION I/E");
   lcd.setCursor(3,2);
@@ -235,14 +217,6 @@ if(POSICION_IE==1){
    lcd.print(" 1:4");
 }
 if(POSICION_IE==2){
-      if(digitalRead(push)==0){
-         delay(REBOTE);
-  lcd.clear();
-  PAGINA_IE=0;
-  MENU_IE=0;
-  MENU_INICIO=1;
-
-  }
   lcd.setCursor(4,0);
   lcd.print("RELACION I/E");
   lcd.setCursor(3,2);
@@ -256,14 +230,6 @@ if(POSICION_IE==2){
    lcd.print(" 1:4");
 }
 if(POSICION_IE==3){
-      if(digitalRead(push)==0){
-         delay(REBOTE);
-  lcd.clear();
-  PAGINA_IE=0;
-  MENU_IE=0;
-  MENU_INICIO=1;
-
-  }
   lcd.setCursor(4,0);
   lcd.print("RELACION I/E");
   lcd.setCursor(3,2);
@@ -279,6 +245,7 @@ if(POSICION_IE==3){
  
 
 }else{
+  salida_IE=0;
   lcd.setCursor(0,0);
   lcd.print(" Frecuencia Resp.");
   lcd.setCursor(0,1); 
@@ -414,4 +381,56 @@ if(MENU_FR==1){
 
   }
 
+}
+
+
+
+void enter(){
+ 
+ if (digitalRead(push) == LOW)     // si B es HIGH, sentido horario
+    {
+   pulso=1;
+    }else{
+      pulso=0;
+      }
+
+if(MENU_INICIO==1){
+  if(pulso==1 && POSICION==0){
+
+    PAGINA_FR=1;
+    
+  }
+   if(pulso==1 && POSICION==1){
+
+    PAGINA_VC=1;
+    
+  }
+  if(pulso==1 && POSICION==2){
+
+    PAGINA_IE=1;
+    
+  }
+}
+
+if(pulso==1){
+  if(salida_FR==1){
+  PAGINA_FR=0;
+  MENU_FR=0;
+  MENU_INICIO=1;
+  }
+if(salida_VC==1){
+       PAGINA_VC=0;
+  MENU_VC=0;
+  MENU_INICIO=1;
+  }
+if(salida_IE==1){
+    PAGINA_IE=0;
+  MENU_IE=0;
+  MENU_INICIO=1;
+
+  }
+
+}
+
+      
 }
