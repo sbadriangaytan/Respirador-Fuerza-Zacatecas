@@ -2,32 +2,32 @@
 #include <LiquidCrystal_I2C.h>
 LiquidCrystal_I2C lcd(0x27,20,4);
 uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};//CARACTER DE FLECHA PARA PANTALLA
-int REBOTE=45;
+///int REBOTE=45; Rebote ya no es necesario despues de las interrupciones 
 
-volatile int pulso=0; 
+volatile int pulso=0; // variable del boton del encoder 
 int pulsoAnterior=999;
 
-int MENU_INICIO=1;
+int MENU_INICIO=1;/// variable para saber la posicion del menu y delimitar el encoder de 0 a 3 
 int ANTERIOR = 999;
-volatile int POSICION = 0;
-int salida_FR=0;
+volatile int POSICION = 0; //variable de posicion del encoder
+int salida_FR=0;//variable de salida para submenus
 
-int MENU_FR=0;
-int PAGINA_FR=0;
+int MENU_FR=0;///variable para saber la posicion del menu y delimitar el encoder de 8 a 40
+int PAGINA_FR=0; // variabla para posicion de menu y hacer regresar del menu de donde se elige el valor de FR
 int ANTERIOR_FR = 999;
-volatile int POSICION_FR = 20;
-int salida_VC=0;
+volatile int POSICION_FR = 20;///variable de inicio para valor FR
+int salida_VC=0;//variable de salida para submenus
 
-int MENU_VC=0;
-int PAGINA_VC=0;
+int MENU_VC=0;//variable para saber la posicion del menu y delimitar el encoder de 200 a 300
+int PAGINA_VC=0;// variabla para posicion de menu y hacer regresar del menu de donde se elige el valor de Vc
 int ANTERIOR_VC = 999;
-volatile int POSICION_VC = 300;
+volatile int POSICION_VC = 300;///variable de inicio para valor VC
 
-int MENU_IE=0;
-int PAGINA_IE=0;
+int MENU_IE=0;// variable para sber posicion del menu y delimitar el valor de IE
+int PAGINA_IE=0;///Variable para saber cuando guardar el valor de IE
 int ANTERIOR_IE = 999;
-volatile int POSICION_IE = 0;
-int salida_IE=0;
+volatile int POSICION_IE = 0;///variable de inicio para valor VC
+int salida_IE=0;//variable de salida para submenus
 
 
 int A = 2;      //variable A a pin digital 2 (DT en modulo)
@@ -394,7 +394,7 @@ void enter(){
       pulso=0;
       }
 
-if(MENU_INICIO==1){
+if(MENU_INICIO==1){               /// cambio de menu principal a submenus o a seleccionar variable 
   if(pulso==1 && POSICION==0){
 
     PAGINA_FR=1;
@@ -412,18 +412,18 @@ if(MENU_INICIO==1){
   }
 }
 
-if(pulso==1){
+if(pulso==1){             ////regreso a menu principal despues de seleccionar el valor de variable FR
   if(salida_FR==1){
   PAGINA_FR=0;
   MENU_FR=0;
   MENU_INICIO=1;
   }
-if(salida_VC==1){
+if(salida_VC==1){       ////regreso a menu principal despues de seleccionar el valor de variable VC
        PAGINA_VC=0;
   MENU_VC=0;
   MENU_INICIO=1;
   }
-if(salida_IE==1){
+if(salida_IE==1){     ////regreso a menu principal despues de seleccionar el valor de variable IE
     PAGINA_IE=0;
   MENU_IE=0;
   MENU_INICIO=1;
