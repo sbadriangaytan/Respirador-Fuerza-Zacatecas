@@ -7,36 +7,37 @@ uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};//CARACTER DE
 volatile int pulso=0; // variable del boton del encoder 
 int pulsoAnterior=999;
 
-int MENU_INICIO=1;/// variable para saber la posicion del menu y delimitar el encoder de 0 a 3 
+boolean salida_FR=false;//variable de salida para submenus
+boolean MENU_INICIO=true;/// variable para saber la posicion del menu y delimitar el encoder de 0 a 3 
 int ANTERIOR = 999;
 volatile int POSICION = 0; //variable de posicion del encoder
-int salida_FR=0;//variable de salida para submenus
 
-int MENU_FR=0;///variable para saber la posicion del menu y delimitar el encoder de 8 a 40
-int PAGINA_FR=0; // variabla para posicion de menu y hacer regresar del menu de donde se elige el valor de FR
+
+boolean MENU_FR=false;///variable para saber la posicion del menu y delimitar el encoder de 8 a 40
+boolean PAGINA_FR=false; // variabla para posicion de menu y hacer regresar del menu de donde se elige el valor de FR
 int ANTERIOR_FR = 999;
 volatile int POSICION_FR = 20;///variable de inicio para valor FR
-int salida_VC=0;//variable de salida para submenus
+boolean salida_VC=false;//variable de salida para submenus
 
-int MENU_VC=0;//variable para saber la posicion del menu y delimitar el encoder de 200 a 300
-int PAGINA_VC=0;// variabla para posicion de menu y hacer regresar del menu de donde se elige el valor de Vc
+boolean MENU_VC=false;//variable para saber la posicion del menu y delimitar el encoder de 200 a 300
+boolean PAGINA_VC=false;// variabla para posicion de menu y hacer regresar del menu de donde se elige el valor de Vc
 int ANTERIOR_VC = 999;
 volatile int POSICION_VC = 300;///variable de inicio para valor VC
 
-int MENU_IE=0;// variable para sber posicion del menu y delimitar el valor de IE
-int PAGINA_IE=0;///Variable para saber cuando guardar el valor de IE
+boolean MENU_IE=false;// variable para sber posicion del menu y delimitar el valor de IE
+boolean PAGINA_IE=false;///Variable para saber cuando guardar el valor de IE
 int ANTERIOR_IE = 999;
 volatile int POSICION_IE = 0;///variable de inicio para valor VC
-int salida_IE=0;//variable de salida para submenus
+boolean salida_IE=false;//variable de salida para submenus
 
 
 int A = 2;      //variable A a pin digital 2 (DT en modulo)
-int B = 3;        //variable B a pin digital 3 (CLK en modulo)
+int B = 4;        //variable B a pin digital 3 (CLK en modulo)
 
 // almacena valor anterior de la variable POSICION
  // variable POSICION con valor inicial de 50 y definida
 
-#define push 19
+#define push 3
 
 void setup() {
 
@@ -92,14 +93,16 @@ void loop() {
   if (POSICION_FR != ANTERIOR_FR) { // si el valor de POSICION es distinto de ANTERIOR
    // Serial.println(POSICION_FR); // imprime valor de POSICION
     ANTERIOR_FR = POSICION_FR ; // asigna a ANTERIOR el valor actualizado de POSICION
-   lcd.clear();
+  lcd.setCursor(9,2);
+  lcd.print("  ");
   }
   //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
   
   if (POSICION_VC != ANTERIOR_VC) { // si el valor de POSICION es distinto de ANTERIOR
    // Serial.println(POSICION_VC); // imprime valor de POSICION
     ANTERIOR_VC = POSICION_VC ; // asigna a ANTERIOR el valor actualizado de POSICION
-   lcd.clear();
+  lcd.setCursor(9,2);
+  lcd.print("    ");
   }
   //----------------------------------LECTURA DE ENCODER MENU RELACION I/E-----------------------------------------
   
@@ -126,9 +129,9 @@ if (pulso != pulsoAnterior) { // si el valor de POSICION es distinto de ANTERIOR
 
 if(PAGINA_FR==1){
 
-  MENU_FR=1;
-  MENU_INICIO=0;
-  salida_FR=1;
+  MENU_FR=true;;
+  MENU_INICIO=false;
+  salida_FR=true;
   lcd.setCursor(5,0);
   lcd.print("FRECUENCIA");
   lcd.setCursor(4,1);
@@ -139,7 +142,7 @@ if(PAGINA_FR==1){
 
 }else{
 
-  salida_FR=0;
+  salida_FR=false;
   lcd.setCursor(0,0);
   lcd.write(0);  
   lcd.print("Frecuencia Resp.");
@@ -155,19 +158,18 @@ if(PAGINA_FR==1){
      case 1:
 
 if(PAGINA_VC==1){
-  MENU_VC=1;
-  MENU_INICIO=0;
-  salida_VC=1;
-lcd.setCursor(5,0);
-  lcd.print("VOLUMEN");
-  lcd.setCursor(4,1);
-  lcd.print("CORRIENTE");
+  MENU_VC=true;
+  MENU_INICIO=false;
+  salida_VC=true;
+lcd.setCursor(2,0);
+  lcd.print("VOLUMEN CORRIENTE");
+
   lcd.setCursor(9,2);
   lcd.print(POSICION_VC);
 
 
 }else{
-    salida_VC=0;
+    salida_VC=false;
   lcd.setCursor(0,0);
   lcd.print(" Frecuencia Resp.");
   lcd.setCursor(0,1); 
@@ -183,9 +185,9 @@ lcd.setCursor(5,0);
      case 2:
 
 if(PAGINA_IE==1){
-  MENU_IE=1;
-  MENU_INICIO=0;
- salida_IE=1;
+  MENU_IE=true;
+  MENU_INICIO=false;
+ salida_IE=true;
 if(POSICION_IE==0){
   lcd.setCursor(4,0);
   lcd.print("RELACION I/E");
@@ -245,7 +247,7 @@ if(POSICION_IE==3){
  
 
 }else{
-  salida_IE=0;
+  salida_IE=false;
   lcd.setCursor(0,0);
   lcd.print(" Frecuencia Resp.");
   lcd.setCursor(0,1); 
@@ -397,36 +399,36 @@ void enter(){
 if(MENU_INICIO==1){               /// cambio de menu principal a submenus o a seleccionar variable 
   if(pulso==1 && POSICION==0){
 
-    PAGINA_FR=1;
+    PAGINA_FR=true;
     
   }
    if(pulso==1 && POSICION==1){
 
-    PAGINA_VC=1;
+    PAGINA_VC=true;
     
   }
   if(pulso==1 && POSICION==2){
 
-    PAGINA_IE=1;
+    PAGINA_IE=true;
     
   }
 }
 
 if(pulso==1){             ////regreso a menu principal despues de seleccionar el valor de variable FR
   if(salida_FR==1){
-  PAGINA_FR=0;
-  MENU_FR=0;
-  MENU_INICIO=1;
+  PAGINA_FR=false;
+  MENU_FR=false;
+  MENU_INICIO=true;
   }
 if(salida_VC==1){       ////regreso a menu principal despues de seleccionar el valor de variable VC
-       PAGINA_VC=0;
-  MENU_VC=0;
-  MENU_INICIO=1;
+       PAGINA_VC=false;
+  MENU_VC=false;
+  MENU_INICIO=true;
   }
 if(salida_IE==1){     ////regreso a menu principal despues de seleccionar el valor de variable IE
-    PAGINA_IE=0;
-  MENU_IE=0;
-  MENU_INICIO=1;
+    PAGINA_IE=false;
+  MENU_IE=false;
+  MENU_INICIO=true;
 
   }
 
