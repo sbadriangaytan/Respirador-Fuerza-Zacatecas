@@ -4,7 +4,7 @@ LiquidCrystal_I2C lcd(0x27,20,4);
 uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};//CARACTER DE FLECHA PARA PANTALLA
 ///int REBOTE=45; Rebote ya no es necesario despues de las interrupciones 
 
-volatile int pulso=0; // variable del boton del encoder 
+boolean pulso=false; // variable del boton del encoder 
 int pulsoAnterior=999;
 
 boolean salida_FR=false;//variable de salida para submenus
@@ -391,9 +391,9 @@ void enter(){
  
  if (digitalRead(push) == LOW)     // si B es HIGH, sentido horario
     {
-   pulso=1;
+   pulso=true;
     }else{
-      pulso=0;
+      pulso=false;
       }
 
 if(MENU_INICIO==1){               /// cambio de menu principal a submenus o a seleccionar variable 
