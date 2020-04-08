@@ -75,22 +75,21 @@ void setup() {
 }
 
 void loop() {
-  
   //---------------------------------LECTURA DE ENCODER MENU INICIAL---------------------------------------------------------
   
   if (POSICION != ANTERIOR) {     // si el valor de POSICION es distinto de ANTERIOR
-   // Serial.println(POSICION);   // imprime valor de POSICION
+    // Serial.println(POSICION);   // imprime valor de POSICION
     ANTERIOR = POSICION ;         // asigna a ANTERIOR el valor actualizado de POSICION
-   lcd.clear();
+    lcd.clear();
   }
   
   //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
   
   if (POSICION_FR != ANTERIOR_FR) {   // si el valor de POSICION es distinto de ANTERIOR
-   // Serial.println(POSICION_FR);    // imprime valor de POSICION
+    // Serial.println(POSICION_FR);    // imprime valor de POSICION
     ANTERIOR_FR = POSICION_FR ;       // asigna a ANTERIOR el valor actualizado de POSICION
-  lcd.setCursor(9,2);
-  lcd.print("  ");
+    lcd.setCursor(9,2);
+    lcd.print("  ");
   }
   
   //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
@@ -105,13 +104,12 @@ void loop() {
   //----------------------------------LECTURA DE ENCODER MENU RELACION I/E-----------------------------------------
   
   if (POSICION_IE != ANTERIOR_IE) {   // si el valor de POSICION es distinto de ANTERIOR
-   // Serial.println(POSICION_IE);    // imprime valor de POSICION
-   ANTERIOR_IE = POSICION_IE;         // asigna a ANTERIOR el valor actualizado de POSICION
-   lcd.clear();
+    // Serial.println(POSICION_IE);    // imprime valor de POSICION
+    ANTERIOR_IE = POSICION_IE;         // asigna a ANTERIOR el valor actualizado de POSICION
+    lcd.clear();
   }
   //----------------------------------LECTURA DE PULSO-----------------------------------------
   
-
   if (pulso != pulsoAnterior) {       // si el valor de POSICION es distinto de ANTERIOR
     lcd.clear();
     //Serial.println("pulso");
