@@ -61,7 +61,7 @@ void setup() {
 
   lcd.clear();
   lcd.setCursor(0,0);
-  lcd.write(0);  
+  lcd.write(0);                           // Imprime el caracter flecha  
   lcd.print("Frecuencia Resp.");
   lcd.setCursor(0,1);  
   lcd.print(" Volumen corriente");
@@ -80,7 +80,7 @@ void loop() {
     lcd.clear();
   }
   
-  //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
+  //----------------------------------LECTURA DE ENCODER MENÚ FRECUENCIA RESPIRATORIA-----------------------------------------
   
   if (POSICION_FR != ANTERIOR_FR) {   // Si el valor de POSICION es distinto de ANTERIOR
     // Serial.println(POSICION_FR);   // Imprime valor de POSICION
@@ -89,7 +89,7 @@ void loop() {
     lcd.print("  ");
   }
   
-  //----------------------------------LECTURA DE ENCODER MENU FRECUENCIA RESPIRATORIA-----------------------------------------
+  //----------------------------------LECTURA DE ENCODER MENÚ VOLUMEN DE CORRIENTE-----------------------------------------
   
   if (POSICION_VC != ANTERIOR_VC) {   // Si el valor de POSICION es distinto de ANTERIOR
     // Serial.println(POSICION_VC);   // Imprime valor de POSICION
@@ -98,7 +98,7 @@ void loop() {
     lcd.print("    ");
   }
   
-  //----------------------------------LECTURA DE ENCODER MENU RELACION I/E-----------------------------------------
+  //----------------------------------LECTURA DE ENCODER MENÚ RELACION I/E-----------------------------------------
   
   if (POSICION_IE != ANTERIOR_IE) {   // Si el valor de POSICION es distinto de ANTERIOR
     // Serial.println(POSICION_IE);   // Imprime valor de POSICION
@@ -118,7 +118,7 @@ void loop() {
     //-------------------------------CASO FRECUENCIA RESPIRATORIA--------------------------------
     case 0:
       if(PAGINA_FR==1){
-        MENU_FR=true;;
+        MENU_FR=true;
         MENU_INICIO=false;
         salida_FR=true;
         lcd.setCursor(5,0);
@@ -148,7 +148,6 @@ void loop() {
         salida_VC=true;
         lcd.setCursor(2,0);
         lcd.print("VOLUMEN CORRIENTE");
-        
         lcd.setCursor(9,2);
         lcd.print(POSICION_VC);
       }else{
@@ -260,10 +259,10 @@ void encoder()  {
     if (tiempoInterrupcion - ultimaInterrupcion > 5) {  // Rutina antirebote desestima
       // pulsos menores a 5 mseg.
       if (digitalRead(B) == HIGH){                      // Si B es HIGH, sentido horario
-        POSICION++ ;                                    // Incrementa POSICION en 1
+        POSICION++;                                     // Incrementa POSICION en 1
       }
       else{                                             // Si B es LOW, senti anti horario
-        POSICION-- ;                                    // Decrementa POSICION en 1
+        POSICION--;                                     // Decrementa POSICION en 1
       }
       POSICION = min(3, max(0, POSICION));              // Establece limite inferior de 0 y
       //superior de 100 para POSICION
@@ -278,9 +277,9 @@ void encoder()  {
     if (tiempoInterrupcion - ultimaInterrupcion > 5) {  // Rutina antirebote desestima
       // pulsos menores a 5 mseg.
       if (digitalRead(B) == HIGH){                      // Si B es HIGH, sentido horario
-        POSICION_FR++ ;                                 // Incrementa POSICION en 1
+        POSICION_FR++;                                  // Incrementa POSICION en 1
       }else {                                           // Si B es LOW, senti anti horario
-        POSICION_FR-- ;                                 // Decrementa POSICION en 1
+        POSICION_FR--;                                  // Decrementa POSICION en 1
       }
       POSICION_FR = min(40, max(8, POSICION_FR));       // Establece limite inferior de 0 y
       // superior de 100 para POSICION
@@ -296,10 +295,10 @@ void encoder()  {
     if (tiempoInterrupcion - ultimaInterrupcion > 5) {  // Rutina antirebote desestima
       // pulsos menores a 5 mseg.
       if (digitalRead(B) == HIGH){                      // Si B es HIGH, sentido horario
-        POSICION_VC++ ;                                 // Incrementa POSICION en 1
+        POSICION_VC++;                                  // Incrementa POSICION en 1
       }
       else {                                            // Si B es LOW, senti anti horario
-        POSICION_VC-- ;                                 // Decrementa POSICION en 1
+        POSICION_VC--;                                  // Decrementa POSICION en 1
       }
       POSICION_VC = min(800, max(200, POSICION_VC));    // Establece limite inferior de 0 y
       // superior de 100 para POSICION
@@ -314,10 +313,10 @@ void encoder()  {
     if (tiempoInterrupcion - ultimaInterrupcion > 5) {  // Rutina antirebote desestima
       // pulsos menores a 5 mseg.
       if (digitalRead(B) == HIGH){                      // Si B es HIGH, sentido horario
-        POSICION_IE++ ;                                 // Incrementa POSICION en 1
+        POSICION_IE++;                                  // Incrementa POSICION en 1
       }
       else {                                            // Si B es LOW, senti anti horario
-        POSICION_IE-- ;                                 // Decrementa POSICION en 1
+        POSICION_IE--;                                  // Decrementa POSICION en 1
       }
       POSICION_IE = min(3, max(0, POSICION_IE));        // Establece limite inferior de 0 y
       // superior de 100 para POSICION
@@ -327,7 +326,7 @@ void encoder()  {
 }
 
 void enter(){
-  if (digitalRead(push) == LOW){     // Si B es HIGH, sentido horario
+  if (digitalRead(push) == LOW){     // Si se presiona el push del encoder
     pulso=true;
   }else{
     pulso=false;
