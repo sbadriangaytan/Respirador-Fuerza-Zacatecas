@@ -113,7 +113,6 @@ void loop() {
   //----------------------------------LECTURA DE PULSO-----------------------------------------
   
   if (pulso != pulsoAnterior) {       // Si el valor de POSICION es distinto de ANTERIOR
-
     delay(250);
     lcd.clear();
     //Serial.println("pulso");
@@ -378,7 +377,9 @@ void enter(){
   
   if (digitalRead(push) == LOW){     // Si B es HIGH, sentido horario
     pulso=true;
+
     digitalWrite(13,HIGH);
+
   }else{
     pulso=false;
   }
