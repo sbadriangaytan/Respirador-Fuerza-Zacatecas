@@ -56,9 +56,9 @@ void setup() {
 
   // Timer 1 de 4.1943 s
   TCCR1A=0x00;                                      // Declaración del funcionamiento normal del timer 1 (10 bits)
-  TCCR1B=0x00;                                      // Declaración del prescalador sobre 1024
+  TCCR1B=0x00;                                      // Timer 1 apagado (hasta que no se use el encoder)
   TCNT1=0x0000;                                     // Cuenta inicial T1 para 4.1943 segundos
-  TIMSK1|=(1<<TOIE1);                              // Apagado del overflow
+  TIMSK1|=(1<<TOIE1);                               // Activación del OverFlow
 
   lcd.init();                 // Iniciar la LCD
   lcd.backlight();            // Activar Backligth
@@ -277,7 +277,7 @@ void loop() {
 }
 
 void encoder()  {
-  TCCR1B=0x05;
+  TCCR1B=0x05;                                          // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                                         // Cuenta inicial T1 para 4.1943 segundos
   if(MENU_INICIO==1){
     static unsigned long ultimaInterrupcion = 0;        // Variable static con último valor de
@@ -353,7 +353,7 @@ void encoder()  {
 }
 
 void enter(){
-  TCCR1B=0x05;
+  TCCR1B=0x05;                        // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                       // Cuenta inicial T1 para 4.1943 segundos
   if (digitalRead(push) == LOW){      // Si B es HIGH, sentido horario
     pulso=true;
@@ -400,14 +400,14 @@ void enter(){
   }    
 }
 
-// Función del timer (no meter ningun lcd.*** crashea, usar mejor banderas)
+// Función del timer (no meter ningun lcd.***() porque crashea, usar mejor banderas)
 ISR(TIMER1_OVF_vect){
-    TCCR1B=0x00;
+    TCCR1B=0x00;                                      // Detiene el timer 1
     TCNT1=0x0000;                                     // Cuenta inicial T1 para 4.1943 segundos
-    p_inicio=false;
-    limpiar_pantalla=1;
-    MENU_INICIO=false;
-    PAGINA_FR=false;
+    p_inicio=false;                                   // Retorna a la pantalla de datos
+    limpiar_pantalla=1;                               // Bandera para limpiar pantalla
+    MENU_INICIO=false;                                // Para que al presionar algo no se meta a la opción
+    PAGINA_FR=false;                                  // Si ya estaba dentro de una opción, para que no se actualice al salir
     MENU_FR=false;
     PAGINA_VC=false;
     MENU_VC=false;
@@ -420,6 +420,7 @@ void mostrarDatos(){
     lcd.clear();
     limpiar_pantalla=0;
   }
+  
   lcd.setCursor(0,0);  
   lcd.print(" FREC.RESP");
   lcd.setCursor(5,1);  
