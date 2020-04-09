@@ -5,6 +5,8 @@
 #define B 4                       //Variable B a pin digital 4 (CLK en módulo)
 #define push  3                   //Variable Push
 
+void mostrarDatos(void);
+
 LiquidCrystal_I2C lcd(0x27,20,4);
 uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};   //CARACTER DE FLECHA PARA PANTALLA
 //int REBOTE=45; Rebote ya no es necesario después de las interrupciones 
@@ -36,11 +38,14 @@ int ANTERIOR_IE = 999;
 volatile int POSICION_IE = 1;   // Variable de inicio para valor VC
 boolean salida_IE=false;        // Variable de salida para submenús
 String IE="vacio";
+
+unsigned short limpiar_pantalla=0;
+
 // Almacena valor anterior de la variable POSICION
 // Variable POSICION con valor inicial de 50 y definida
 
 void setup() {
-  pinMode(13,OUTPUT); //pin para buzzer
+  pinMode(13,OUTPUT);   // Pin para buzzer
   pinMode(A, INPUT);    // A como entrada
   pinMode(B, INPUT);    // B como entrada
   pinMode (push,INPUT); 
@@ -48,6 +53,12 @@ void setup() {
 
   attachInterrupt(digitalPinToInterrupt(push),enter, CHANGE); // Interrupción sobre pin A con
   attachInterrupt(digitalPinToInterrupt(A),encoder, LOW);     // Interrupción sobre pin A con
+
+  // Timer 1 de 4.1943 s
+  TCCR1A=0x00;                                      // Declaración del funcionamiento normal del timer 1 (10 bits)
+  TCCR1B=0x00;                                      // Declaración del prescalador sobre 1024
+  TCNT1=0x0000;                                     // Cuenta inicial T1 para 4.1943 segundos
+  TIMSK1|=(1<<TOIE1);                              // Apagado del overflow
 
   lcd.init();                 // Iniciar la LCD
   lcd.backlight();            // Activar Backligth
@@ -61,7 +72,7 @@ void setup() {
 
   delay(3000);
 
- /* lcd.clear();
+  /*lcd.clear();
   lcd.setCursor(0,0);
   lcd.write(0);  
   lcd.print("Frecuencia Resp.");
@@ -70,12 +81,13 @@ void setup() {
   lcd.setCursor(0,2);  
   lcd.print(" Relacion I / E");
   lcd.setCursor(0,3);  
-  lcd.print(" Presion / deteccion");*/
+  lcd.print(" Presion / deteccion");
+  */
 
 }
 
 void loop() {
-    digitalWrite(13,LOW);
+  //digitalWrite(13,LOW);               //Preferible que cuando se presione enter se prenda y apage en la misma función
   
   //---------------------------------LECTURA DE ENCODER MENÚ INICIAL---------------------------------------------------------
   
@@ -120,186 +132,153 @@ void loop() {
     pulsoAnterior = pulso ;           // Asigna a ANTERIOR el valor actualizado de POSICION
   }
 
-if(p_inicio==true){
-  
-
-  
-  switch(POSICION){
+  if(p_inicio==true){
     
-    //-------------------------------CASO FRECUENCIA RESPIRATORIA--------------------------------
-    case 0:
-      if(PAGINA_FR==1){
-        MENU_FR=true;;
-        MENU_INICIO=false;
-        salida_FR=true;
-        lcd.setCursor(5,0);
-        lcd.print("FRECUENCIA");
-        lcd.setCursor(4,1);
-        lcd.print("RESPIRATORIA");
-        lcd.setCursor(9,2);
-        lcd.print(POSICION_FR);
-      }else{
-        salida_FR=false;
+    switch(POSICION){
+      
+      //-------------------------------CASO FRECUENCIA RESPIRATORIA--------------------------------
+      case 0:
+        if(PAGINA_FR==1){
+          MENU_FR=true;;
+          MENU_INICIO=false;
+          salida_FR=true;
+          lcd.setCursor(5,0);
+          lcd.print("FRECUENCIA");
+          lcd.setCursor(4,1);
+          lcd.print("RESPIRATORIA");
+          lcd.setCursor(9,2);
+          lcd.print(POSICION_FR);
+        }else{
+          salida_FR=false;
+          lcd.setCursor(0,0);
+          lcd.write(0);  
+          lcd.print("Frecuencia Resp.");
+          lcd.setCursor(0,1);  
+          lcd.print(" Volumen corriente");
+          lcd.setCursor(0,2);  
+          lcd.print(" Relacion I / E");
+          lcd.setCursor(0,3);  
+          lcd.print(" Presion / deteccion");
+        }
+      break;
+      //-------------------------------CASO VOLUMEN CORRIENTE--------------------------------
+      case 1:
+        if(PAGINA_VC==1){
+          MENU_VC=true;
+          MENU_INICIO=false;
+          salida_VC=true;
+          lcd.setCursor(2,0);
+          lcd.print("VOLUMEN CORRIENTE");
+          
+          lcd.setCursor(9,2);
+          lcd.print(POSICION_VC);
+        }else{
+          salida_VC=false;
+          lcd.setCursor(0,0);
+          lcd.print(" Frecuencia Resp.");
+          lcd.setCursor(0,1); 
+          lcd.write(0);  
+          lcd.print("Volumen corriente");
+          lcd.setCursor(0,2);  
+          lcd.print(" Relacion I / E");
+          lcd.setCursor(0,3);  
+          lcd.print(" Presion / deteccion");
+        }  
+      break;
+      //-----------------------------------CASO VOLUMEN CORRIENTE----------------------------    
+      case 2:
+        if(PAGINA_IE==1){
+          MENU_IE=true;
+          MENU_INICIO=false;
+          salida_IE=true;
+          if(POSICION_IE==0){
+            lcd.setCursor(4,0);
+            lcd.print("RELACION I/E");
+            lcd.setCursor(3,2);
+            lcd.write(0);
+            lcd.print("1:1");
+            lcd.setCursor(3,3);
+            lcd.print(" 1:2");
+            lcd.setCursor(12,2);
+            lcd.print(" 1:3");
+            lcd.setCursor(12,3);
+            lcd.print(" 1:4");
+          }
+          if(POSICION_IE==1){
+            lcd.setCursor(4,0);
+            lcd.print("RELACION I/E");
+            lcd.setCursor(3,2);
+            lcd.print(" 1:1");
+            lcd.setCursor(3,3);
+            lcd.write(0);
+            lcd.print("1:2");
+            lcd.setCursor(12,2);
+            lcd.print(" 1:3");
+            lcd.setCursor(12,3);
+            lcd.print(" 1:4");
+          }
+          if(POSICION_IE==2){
+            lcd.setCursor(4,0);
+            lcd.print("RELACION I/E");
+            lcd.setCursor(3,2);
+            lcd.print(" 1:1");
+            lcd.setCursor(3,3);
+            lcd.print(" 1:2");
+            lcd.setCursor(12,2);
+            lcd.write(0);
+            lcd.print("1:3");
+            lcd.setCursor(12,3);
+            lcd.print(" 1:4");
+          }
+          if(POSICION_IE==3){
+            lcd.setCursor(4,0);
+            lcd.print("RELACION I/E");
+            lcd.setCursor(3,2);
+            lcd.print(" 1:1");
+            lcd.setCursor(3,3);
+             lcd.print(" 1:2");
+             lcd.setCursor(12,2);
+             lcd.print(" 1:3");
+             lcd.setCursor(12,3);
+               lcd.write(0);
+             lcd.print("1:4");
+          }
+        }else{
+          salida_IE=false;
+          lcd.setCursor(0,0);
+          lcd.print(" Frecuencia Resp.");
+          lcd.setCursor(0,1); 
+          lcd.print(" Volumen corriente");
+          lcd.setCursor(0,2); 
+          lcd.write(0); 
+          lcd.print("Relacion I / E");
+          lcd.setCursor(0,3);  
+          lcd.print(" Presion / deteccion");
+        }
+      break;
+      //---------------------------------------------------------------    
+      case 3:
         lcd.setCursor(0,0);
-        lcd.write(0);  
-        lcd.print("Frecuencia Resp.");
-        lcd.setCursor(0,1);  
+        lcd.print(" Frecuencia Resp.");
+        lcd.setCursor(0,1); 
         lcd.print(" Volumen corriente");
         lcd.setCursor(0,2);  
         lcd.print(" Relacion I / E");
         lcd.setCursor(0,3);  
-        lcd.print(" Presion / deteccion");
-      }
-    break;
-    //-------------------------------CASO VOLUMEN CORRIENTE--------------------------------
-    case 1:
-      if(PAGINA_VC==1){
-        MENU_VC=true;
-        MENU_INICIO=false;
-        salida_VC=true;
-        lcd.setCursor(2,0);
-        lcd.print("VOLUMEN CORRIENTE");
-        
-        lcd.setCursor(9,2);
-        lcd.print(POSICION_VC);
-      }else{
-        salida_VC=false;
-        lcd.setCursor(0,0);
-        lcd.print(" Frecuencia Resp.");
-        lcd.setCursor(0,1); 
-        lcd.write(0);  
-        lcd.print("Volumen corriente");
-        lcd.setCursor(0,2);  
-        lcd.print(" Relacion I / E");
-        lcd.setCursor(0,3);  
-        lcd.print(" Presion / deteccion");
-      }  
-    break;
-    //-----------------------------------CASO VOLUMEN CORRIENTE----------------------------    
-    case 2:
-      if(PAGINA_IE==1){
-        MENU_IE=true;
-        MENU_INICIO=false;
-        salida_IE=true;
-        if(POSICION_IE==0){
-          lcd.setCursor(4,0);
-          lcd.print("RELACION I/E");
-          lcd.setCursor(3,2);
-          lcd.write(0);
-          lcd.print("1:1");
-          lcd.setCursor(3,3);
-          lcd.print(" 1:2");
-          lcd.setCursor(12,2);
-          lcd.print(" 1:3");
-          lcd.setCursor(12,3);
-          lcd.print(" 1:4");
-        }
-        if(POSICION_IE==1){
-          lcd.setCursor(4,0);
-          lcd.print("RELACION I/E");
-          lcd.setCursor(3,2);
-          lcd.print(" 1:1");
-          lcd.setCursor(3,3);
-          lcd.write(0);
-          lcd.print("1:2");
-          lcd.setCursor(12,2);
-          lcd.print(" 1:3");
-          lcd.setCursor(12,3);
-          lcd.print(" 1:4");
-        }
-        if(POSICION_IE==2){
-          lcd.setCursor(4,0);
-          lcd.print("RELACION I/E");
-          lcd.setCursor(3,2);
-          lcd.print(" 1:1");
-          lcd.setCursor(3,3);
-          lcd.print(" 1:2");
-          lcd.setCursor(12,2);
-          lcd.write(0);
-          lcd.print("1:3");
-          lcd.setCursor(12,3);
-          lcd.print(" 1:4");
-        }
-        if(POSICION_IE==3){
-          lcd.setCursor(4,0);
-          lcd.print("RELACION I/E");
-          lcd.setCursor(3,2);
-          lcd.print(" 1:1");
-          lcd.setCursor(3,3);
-           lcd.print(" 1:2");
-           lcd.setCursor(12,2);
-           lcd.print(" 1:3");
-           lcd.setCursor(12,3);
-             lcd.write(0);
-           lcd.print("1:4");
-        }
-      }else{
-        salida_IE=false;
-        lcd.setCursor(0,0);
-        lcd.print(" Frecuencia Resp.");
-        lcd.setCursor(0,1); 
-        lcd.print(" Volumen corriente");
-        lcd.setCursor(0,2); 
         lcd.write(0); 
-        lcd.print("Relacion I / E");
-        lcd.setCursor(0,3);  
-        lcd.print(" Presion / deteccion");
-      }
-    break;
-    //---------------------------------------------------------------    
-    case 3:
-      lcd.setCursor(0,0);
-      lcd.print(" Frecuencia Resp.");
-      lcd.setCursor(0,1); 
-      lcd.print(" Volumen corriente");
-      lcd.setCursor(0,2);  
-      lcd.print(" Relacion I / E");
-      lcd.setCursor(0,3);  
-      lcd.write(0); 
-      lcd.print("Presion / deteccion");
-    break;
-    default:
-    break;
+        lcd.print("Presion / deteccion");
+      break;
+      default:
+      break;
+    }
+  }else{
+    mostrarDatos();       // Se movió a la parte de abajo como función para poderla llamar facilmente
   }
-}else{
-
-  lcd.setCursor(0,0);  
-  lcd.print(" FREC.RESP");
-  lcd.setCursor(5,1);  
-  lcd.print(POSICION_FR);
-  
-  lcd.setCursor(0,2);  
-  lcd.print(" VOL.CORR.");
-  lcd.setCursor(4,3);  
-  lcd.print(POSICION_VC);
-
-    if(POSICION_IE==0){
-      IE="1:1";
-    }
-    if(POSICION_IE==1){
-      IE="1:2";
-    }
-    if(POSICION_IE==2){
-      IE="1:3";
-    }
-    if(POSICION_IE==3){
-      IE="1:4";
-    }
-  lcd.setCursor(14,0);  
-  lcd.print("I/E");
-  lcd.setCursor(14,1);  
-  lcd.print(IE);
-
-  lcd.setCursor(12,2);  
-  lcd.print("PRESION");
-  lcd.setCursor(14,3);  
-  //lcd.print(POSICION_FR); AUN NO SE CREA MENU
-
-}
-
 }
 
 void encoder()  {
+  TCCR1B=0x05;
+  TCNT1=0x0000;                                         // Cuenta inicial T1 para 4.1943 segundos
   if(MENU_INICIO==1){
     static unsigned long ultimaInterrupcion = 0;        // Variable static con último valor de
     // tiempo de interrupcion
@@ -374,12 +353,13 @@ void encoder()  {
 }
 
 void enter(){
-  
-  if (digitalRead(push) == LOW){     // Si B es HIGH, sentido horario
+  TCCR1B=0x05;
+  TCNT1=0x0000;                       // Cuenta inicial T1 para 4.1943 segundos
+  if (digitalRead(push) == LOW){      // Si B es HIGH, sentido horario
     pulso=true;
-
     digitalWrite(13,HIGH);
-
+    delay(25);                        // Retardo para que se alcance a percibir el buzzer
+    digitalWrite(13,LOW);
   }else{
     pulso=false;
   }
@@ -418,4 +398,58 @@ void enter(){
       MENU_INICIO=true;
     }
   }    
+}
+
+// Función del timer (no meter ningun lcd.*** crashea, usar mejor banderas)
+ISR(TIMER1_OVF_vect){
+    TCCR1B=0x00;
+    TCNT1=0x0000;                                     // Cuenta inicial T1 para 4.1943 segundos
+    p_inicio=false;
+    limpiar_pantalla=1;
+    MENU_INICIO=false;
+    PAGINA_FR=false;
+    MENU_FR=false;
+    PAGINA_VC=false;
+    MENU_VC=false;
+    PAGINA_IE=false;
+    MENU_IE=false;
+}
+
+void mostrarDatos(){
+  if (limpiar_pantalla){
+    lcd.clear();
+    limpiar_pantalla=0;
+  }
+  lcd.setCursor(0,0);  
+  lcd.print(" FREC.RESP");
+  lcd.setCursor(5,1);  
+  lcd.print(POSICION_FR);
+  
+  lcd.setCursor(0,2);  
+  lcd.print(" VOL.CORR.");
+  lcd.setCursor(4,3);  
+  lcd.print(POSICION_VC);
+
+  if(POSICION_IE==0){
+    IE="1:1";
+  }
+  if(POSICION_IE==1){
+    IE="1:2";
+  }
+  if(POSICION_IE==2){
+    IE="1:3";
+  }
+  if(POSICION_IE==3){
+    IE="1:4";
+  }
+  
+  lcd.setCursor(14,0);  
+  lcd.print("I/E");
+  lcd.setCursor(14,1);  
+  lcd.print(IE);
+
+  lcd.setCursor(12,2);  
+  lcd.print("PRESION");
+  lcd.setCursor(14,3);  
+  //lcd.print(POSICION_FR); AUN NO SE CREA MENU
 }
