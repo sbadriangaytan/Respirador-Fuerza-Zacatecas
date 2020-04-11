@@ -7,6 +7,7 @@
 
 void mostrarDatos(void);
 void mostrarInicio(void);
+void limpiarAlarmas(void);
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};   //CARACTER DE FLECHA PARA PANTALLA
@@ -39,12 +40,17 @@ boolean salida_IE=false;              // Variable de salida para submenús
 String IE="vacio";
 
 unsigned short limpiar_pantalla=0;
+volatile short espera_alarma=1;
+unsigned int cuenta_timer2;
 
 // Almacena valor anterior de la variable POSICION
 // Variable POSICION con valor inicial de 50 y definida
 
 void setup() {
   pinMode(13, OUTPUT);  // Pin para buzzer
+  pinMode(12, OUTPUT);  // Alarma no puede inspirar
+  pinMode(11, OUTPUT);  // Alarma presión baja
+  pinMode(10, OUTPUT);  // Alarma presión alta
   pinMode(A, INPUT);    // A como entrada
   pinMode(B, INPUT);    // B como entrada
   pinMode (push,INPUT); 
@@ -59,6 +65,15 @@ void setup() {
   TCNT1=0x0000;                                     // Cuenta inicial T1 para 4.1943 segundos
   TIMSK1|=(1<<TOIE1);                               // Activación del OverFlow
 
+  // Timer 2 de 16.384 ms
+  ASSR=(0<<EXCLK) | (0<<AS2);
+  TCNT2=0x00;
+  TCCR2A=0x00;                                      // Declaración del funcionamiento normal del timer 2 (8 bits)
+  TCCR2B=0x00;                                      // Timer 2 apagado (hasta que la bolsa esté inflada)
+  TCNT2=0x00;                                       // Cuenta inicial T2 para 16.384 segundos
+  TIMSK2|=(1<<TOIE2);                               // Activación del OverFlow
+  cuenta_timer2=0;                                  // Para llegar a los 2 segundos 2000/16.384=122
+
   lcd.init();                 // Iniciar la LCD
   lcd.backlight();            // Activar Backligth
   lcd.createChar(0, arrow);   // Crear el caracter flecha
@@ -70,7 +85,6 @@ void setup() {
   lcd.print("<FUERZA ZACATECAS>");
   delay(300);
   lcd.clear();
-
 }
 
 void loop() {
@@ -198,6 +212,31 @@ void loop() {
   }else{
     mostrarDatos();       // Se movió a la parte de abajo como función para poderla llamar facilmente
   }
+  // Alertas según MIT
+  // Cuando el paciente no puede activar la innalación
+  // Esta alarma estaría bien implementarla ya con el dispositivo y ver lo que arroja el monitor serie para establecer los parámetros correctos
+  // Creo que será que si hay una presión con la bolsa inflada debe haber una pequeña baja de presión después de cierto tiempo
+  // Suponiendo que la bolsa inflada da como resultado 650, y cuando inhalo tiene que caer a 550 la lógica que seguí es la siguiente.
+  
+  if(analogRead(A3)<200){           // Baja presión
+    digitalWrite(11, HIGH);
+  }else if(analogRead(A3)>800){     // Alta presión
+    digitalWrite(10, HIGH);
+  }else if(analogRead(A3)>600){       // Si la bolsa está inflada (presión normal)
+    if(espera_alarma==1){
+      TCCR2B=0x07;                    // Activación del Timer 2 con el preescalador MAX (1024)  
+    }else{                            // Pasaron los 2 segundos en el timer2 (revisar la función del timer para más info)
+      if (analogRead(A3)>600){        // Si la bolsa sigue inflada y no bajó la presión hasta el deseado
+        digitalWrite(12, HIGH);       // Enciende la alarma de inhalación
+      }
+    }
+  }else{                              // Funcionamiento normal
+    TCCR2B=0x00;
+    TCNT2=0x00;
+    cuenta_timer2=0;
+    espera_alarma=1;                  // Prepara la siguiente vez
+    digitalWrite(12, LOW);            // Apaga la alarma de inhalación
+  }
 }
 
 void encoder()  {
@@ -284,6 +323,7 @@ void enter(){
     digitalWrite(13,HIGH);
     delay(25);                        // Retardo para que se alcance a percibir el buzzer
     digitalWrite(13,LOW);
+    limpiarAlarmas();
   }else{
     pulso=false;
   }
@@ -355,6 +395,19 @@ ISR(TIMER1_OVF_vect){
     
 }
 
+// Función del timer (no meter ningun lcd.***() porque crashea, usar mejor banderas)
+ISR(TIMER2_OVF_vect){
+  if(cuenta_timer2<122){
+    cuenta_timer2++;
+    TCNT2=0x00;
+  }else{
+    TCCR2B=0x00;                    // Apaga el timer 2
+    TCNT2=0x00;
+    cuenta_timer2=0;
+    espera_alarma=0;
+  }
+}
+
 void mostrarDatos(){
   
   if (limpiar_pantalla){
@@ -412,4 +465,10 @@ void mostrarInicio(){
     lcd.setCursor(1,3);  
     lcd.print("Presion / deteccion");
   }
+}
+
+void limpiarAlarmas(){
+  digitalWrite(12,LOW);
+  digitalWrite(11,LOW);
+  digitalWrite(10,LOW);
 }
