@@ -51,13 +51,13 @@ void setup() {
   pinMode(12, OUTPUT);  // Alarma no puede inspirar
   pinMode(11, OUTPUT);  // Alarma presión baja
   pinMode(10, OUTPUT);  // Alarma presión alta
-  pinMode(A, INPUT);    // A como entrada
-  pinMode(B, INPUT);    // B como entrada
+  pinMode(A, INPUT_PULLUP);    // A como entrada
+  pinMode(B, INPUT_PULLUP);    // B como entrada
   pinMode (push,INPUT); 
   Serial.begin(9600);   // Incialización de comunicacion serie a 9600 bps
 
-  attachInterrupt(digitalPinToInterrupt(push),enter, CHANGE); // Interrupción sobre pin A con
-  attachInterrupt(digitalPinToInterrupt(A),encoder, LOW);     // Interrupción sobre pin A con
+  attachInterrupt(digitalPinToInterrupt(push),enter, RISING); // Interrupción sobre pin A con
+  attachInterrupt(digitalPinToInterrupt(A),encoder, RISING);     // Interrupción sobre pin A con
 
   // Timer 1 de 4.1943 s
   TCCR1A=0x00;                                      // Declaración del funcionamiento normal del timer 1 (10 bits)

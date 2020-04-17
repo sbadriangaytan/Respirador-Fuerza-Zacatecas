@@ -8,12 +8,12 @@
 #define PINdireccion 9
 #define PINpasos 8
 
-unsigned int FR=8, VA=215, IE=2, SEN=1;
-unsigned int FR_TEN=8, VA_TEN=215, IE_TEN=2, SEN_TEN=1;
-unsigned int pantalla = 1, limpiar_pantalla=1;
-unsigned short opcion = 1, compresion = 1;
+unsigned int FR=30, VA=800, IE=2, SEN=1;                    // Variables originales (las que usan los motores, necesitan confirmación)
+unsigned int FR_TEN=30, VA_TEN=800, IE_TEN=2, SEN_TEN=1;    // Variables tentativas (las que se muestran en pantalla)
+unsigned int pantalla = 1, limpiar_pantalla=1;              // Variables de pantallas
+unsigned short opcion = 1, compresion = 1;                  //
 unsigned int cuenta = 0;
-unsigned int pulsos=500, retraso_compresion=0xFC40, retraso_descompresion=0xF880, pulsos_actuales=0;
+unsigned int pulsos=2000, retraso_compresion=0xFFF4, retraso_descompresion=0xFFF4, pulsos_actuales=0;
 
 LiquidCrystal_I2C lcd(0x27,20,4);
 uint8_t arrow[8] = {0x0, 0x04 ,0x06, 0x1f, 0x06, 0x04, 0x00, 0x00};   //CARACTER DE FLECHA PARA PANTALLA
@@ -26,6 +26,7 @@ void setup(){
   pinMode(PINdireccion, OUTPUT);
   pinMode(PINpasos, OUTPUT);
   pinMode(5, INPUT_PULLUP);     // Final de carrera
+  pinMode(6, INPUT_PULLUP);     // Botón inicio
   pinMode(A, INPUT_PULLUP);     // A como entrada
   pinMode(B, INPUT_PULLUP);     // B como entrada
   pinMode(push,INPUT_PULLUP);   // Push como entrada
@@ -40,7 +41,7 @@ void setup(){
   TCNT1=0x0000;                                     // Cuenta inicial T1 para 4.1943 segundos
   TIMSK1|=(1<<TOIE1);                               // Activación del OverFlow
 
-  // Timer 3 de 4.1943 s
+  // Timer 3 de 1ms
   TCCR3A=0x00;                                      // Declaración del funcionamiento normal del timer 3 (10 bits)
   TCCR3B=0x00;                                      // Timer 3 apagado (hasta que no se use el encoder)
   TCNT3=0xFC40;                                     // Cuenta inicial T3 para 4.1943 segundos
@@ -53,7 +54,12 @@ void setup(){
   lcd.clear();
   lcd.setCursor(1,1);  
   lcd.print("<FUERZA ZACATECAS>");
+  delay(2000);
+  lcd.clear();
+  lcd.setCursor(5,1); 
+  lcd.print("Home...");
   moverMotorAtras();
+  while(digitalRead(6)==1){}         // Mientras no se presione no hacer nada
   Serial.println("terminado");
   TCCR3B=0x05;
   lcd.clear();
@@ -97,7 +103,7 @@ void loop(){
 }
 
 void enter(){
-  TCCR1B=0x05;                                          // Inicia el timer 1 con el máximo preescalador de 1024
+  TCCR1B=0x07;                                          // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                                         // Cuenta inicial T1 para 4.1943 segundos
   digitalWrite(13,HIGH);
   delay(10);
@@ -127,12 +133,12 @@ void enter(){
     VA=VA_TEN;
     IE=IE_TEN;
     SEN=SEN_TEN;
-    actualizarMovimiento();
+    //actualizarMovimiento();
   }
 }
 
 void encoder(){
-  TCCR1B=0x05;                        // Inicia el timer 1 con el máximo preescalador de 1024
+  TCCR1B=0x07;                        // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                       // Cuenta inicial T1 para 4.1943 segundos
   if (pantalla==2){
     static unsigned long ultimaInterrupcion = 0;
@@ -192,7 +198,7 @@ void encoder(){
   }else if(pantalla==5){
     static unsigned long ultimaInterrupcion = 0;
     unsigned long tiempoInterrupcion = millis();        
-    if (tiempoInterrupcion - ultimaInterrupcion > 5) {
+    if (tiempoInterrupcion - ultimaInterrupcion > 15) {
       if (digitalRead(B)==1){
         limpiar_pantalla=1;
         if (IE_TEN<4){
@@ -348,8 +354,12 @@ void resetearAlarmas(){
 
 void actualizarMovimiento(){
   pulsos = map(VA, 215, 800, 500, 2000);    // Compresión
+  /*
   retraso_compresion = (int)(65536-((30 * pulsos)/(2000*FR)*128));        // Magia
   retraso_descompresion = (int)(65536-((30 * pulsos)/(2000*FR)*128*IE));  // Magia
+  */
+  retraso_compresion = (int)(65536-((30 * pulsos)/(2000*FR)*12));        // Magia
+  retraso_descompresion = (int)(65536-((30 * pulsos)/(2000*FR)*12*IE));  // Magia
   Serial.println(pulsos);
   Serial.println(retraso_compresion);
   Serial.println(retraso_descompresion);
@@ -384,6 +394,7 @@ ISR(TIMER3_OVF_vect){
         pulsos_actuales--;
       }else{
         compresion=1;
+        actualizarMovimiento();
         Serial.println("Inhala");
       }
     }
@@ -394,9 +405,9 @@ void moverMotorAtras(){
   Serial.println("atras");
   while(digitalRead(5)==1){         // Atrás hasta que el final de carrera se accione
     digitalWrite(PINpasos,HIGH);
-    delay(3);
+    delay(1);
     digitalWrite(PINpasos,LOW);
-    delay(3);
+    delay(1);
   }
   moverMotorAdelante();
 }
@@ -406,8 +417,8 @@ void moverMotorAdelante(){
   Serial.println("adelante");
   for (int i = 0; i<375; i++){    // Adelante 3 cm
     digitalWrite(PINpasos,HIGH);
-    delay(3);
+    delay(1);
     digitalWrite(PINpasos,LOW);
-    delay(3);
+    delay(1);
   }
 }
