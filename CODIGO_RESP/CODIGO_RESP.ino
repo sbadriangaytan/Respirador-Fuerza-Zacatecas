@@ -111,6 +111,7 @@ void loop() {
           lcd.print("RESPIRATORIA");
           lcd.setCursor(9,2);
           lcd.print(POSICION_FR_TEN);
+          frecuenciaRespiratoria();
         }else{
           salida_FR=false;
           mostrarInicio();
@@ -267,9 +268,9 @@ void encoder()  {
     if (tiempoInterrupcion - ultimaInterrupcion > 5) {  // Rutina antirebote desestima
       // pulsos menores a 5 mseg.
       if (digitalRead(B) == HIGH){                      // Si B es HIGH, sentido horario
-        POSICION_FR_TEN++;                              // Incrementa POSICION en 1
+        POSICION_FR_TEN--;                              // Incrementa POSICION en 1
       }else {                                           // Si B es LOW, senti anti horario
-        POSICION_FR_TEN--;                              // Decrementa POSICION en 1
+        POSICION_FR_TEN++;                              // Decrementa POSICION en 1
       }
       POSICION_FR_TEN = min(40, max(8, POSICION_FR_TEN));       // Establece limite inferior de 0 y
       // superior de 100 para POSICION
@@ -285,10 +286,10 @@ void encoder()  {
     if (tiempoInterrupcion - ultimaInterrupcion > 5) {  // Rutina antirebote desestima
       // pulsos menores a 5 mseg.
       if (digitalRead(B) == HIGH){                      // Si B es HIGH, sentido horario
-        POSICION_VC_TEN++;                              // Incrementa POSICION en 1
+        POSICION_VC_TEN--;                              // Incrementa POSICION en 1
       }
       else {                                            // Si B es LOW, senti anti horario
-        POSICION_VC_TEN--;                              // Decrementa POSICION en 1
+        POSICION_VC_TEN++;                              // Decrementa POSICION en 1
       }
       POSICION_VC_TEN = min(800, max(200, POSICION_VC_TEN));    // Establece limite inferior de 0 y
       // superior de 100 para POSICION
@@ -316,6 +317,7 @@ void encoder()  {
 }
 
 void enter(){
+  delay(200);
   TCCR1B=0x05;                        // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                       // Cuenta inicial T1 para 4.1943 segundos
   if (digitalRead(push) == LOW){      // Si B es HIGH, sentido horario
@@ -450,6 +452,7 @@ void mostrarDatos(){
 }
 
 void mostrarInicio(){
+  delay(200);
   // Borrar el caracter flecha de posiciones anteriores
   if(POSICION!=POSICION_ANTERIOR){              // Si hubo un cambio en la posición borra las flechas remanentes.
     limpiar_pantalla=1;
@@ -472,3 +475,10 @@ void limpiarAlarmas(){
   digitalWrite(11,LOW);
   digitalWrite(10,LOW);
 }
+int frecuenciaRespiratoria(){
+  int per = 60/POSICION_FR;
+  int insp_espi = per *0.6;
+  int delay_inspi *1000/100; /// val en milisegundos
+  int pausa = per *0.4;
+  int delay_pausa = pausa * 1000 / 100;
+  }
