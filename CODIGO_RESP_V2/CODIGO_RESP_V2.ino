@@ -25,7 +25,7 @@ void setup(){
   pinMode(10, OUTPUT);  // Alarma presión alta
   pinMode(PINdireccion, OUTPUT);
   pinMode(PINpasos, OUTPUT);
-  pinMode(5, INPUT_PULLUP);
+  pinMode(5, INPUT_PULLUP);     // Final de carrera
   pinMode(A, INPUT_PULLUP);     // A como entrada
   pinMode(B, INPUT_PULLUP);     // B como entrada
   pinMode(push,INPUT_PULLUP);   // Push como entrada
@@ -97,7 +97,7 @@ void loop(){
 }
 
 void enter(){
-  TCCR1B=0x07;                                          // Inicia el timer 1 con el máximo preescalador de 1024
+  TCCR1B=0x05;                                          // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                                         // Cuenta inicial T1 para 4.1943 segundos
   digitalWrite(13,HIGH);
   delay(10);
@@ -132,66 +132,83 @@ void enter(){
 }
 
 void encoder(){
-  TCCR1B=0x07;                        // Inicia el timer 1 con el máximo preescalador de 1024
+  TCCR1B=0x05;                        // Inicia el timer 1 con el máximo preescalador de 1024
   TCNT1=0x0000;                       // Cuenta inicial T1 para 4.1943 segundos
   if (pantalla==2){
-    if (digitalRead(B)==1){
-      limpiar_pantalla=1;
-      if(opcion<4){
-        opcion++;
-      }else{
-        opcion=1;
-      }
-    }else{
-      limpiar_pantalla=1;
-      if (opcion>1){
-        opcion--;
-      }else{
-        opcion=4;
-      }
+    static unsigned long ultimaInterrupcion = 0;
+    unsigned long tiempoInterrupcion = millis();        
+    if (tiempoInterrupcion - ultimaInterrupcion > 5) {
+      if (digitalRead(B) == 1){                      // Si B es HIGH, sentido horario
+        limpiar_pantalla=1;
+        if(opcion<4){
+          opcion++;
+        }else{
+          opcion=1;
+        }
+       }else{
+          limpiar_pantalla=1;
+          if (opcion>1){
+            opcion--;
+          }else{
+            opcion=4;
+          }
+        }
+      ultimaInterrupcion = tiempoInterrupcion;          // Guarda valor actualizado del tiempo
     }
   }else if(pantalla==3){
-    limpiar_pantalla=1;
-    if (digitalRead(B)==1){
-      limpiar_pantalla=1;
-      if(FR_TEN<30){
-        FR_TEN++;
+    static unsigned long ultimaInterrupcion = 0;
+    unsigned long tiempoInterrupcion = millis();        
+    if (tiempoInterrupcion - ultimaInterrupcion > 5) {
+      if (digitalRead(B)==1){
+        limpiar_pantalla=1;
+        if(FR_TEN<30){
+          FR_TEN++;
+        }
+      }else{
+        limpiar_pantalla=1;
+        if(FR_TEN>8){
+          FR_TEN--;
+        }
       }
-    }else{
-      limpiar_pantalla=1;
-      if(FR_TEN>8){
-        FR_TEN--;
-      }
+      ultimaInterrupcion = tiempoInterrupcion;          // Guarda valor actualizado del tiempo
     }
   }else if(pantalla==4){
-    limpiar_pantalla=1;
-    if (digitalRead(B)==1){
-      limpiar_pantalla=1;
-      if(VA_TEN<800){
-        VA_TEN++;
+    static unsigned long ultimaInterrupcion = 0;
+    unsigned long tiempoInterrupcion = millis();        
+    if (tiempoInterrupcion - ultimaInterrupcion > 5) {
+      if (digitalRead(B)==1){
+        limpiar_pantalla=1;
+        if(VA_TEN<800){
+          VA_TEN++;
+        }
+      }else{
+        limpiar_pantalla=1;
+        if(VA_TEN>215){
+          VA_TEN--;
+        }
       }
-    }else{
-      limpiar_pantalla=1;
-      if(VA_TEN>215){
-        VA_TEN--;
-      }
+      ultimaInterrupcion = tiempoInterrupcion;          // Guarda valor actualizado del tiempo
     }
   }else if(pantalla==5){
-    limpiar_pantalla=1;
-    if (digitalRead(B)==1){
-      limpiar_pantalla=1;
-      if (IE_TEN<4){
-        IE_TEN++;
+    static unsigned long ultimaInterrupcion = 0;
+    unsigned long tiempoInterrupcion = millis();        
+    if (tiempoInterrupcion - ultimaInterrupcion > 5) {
+      if (digitalRead(B)==1){
+        limpiar_pantalla=1;
+        if (IE_TEN<4){
+          IE_TEN++;
+        }else{
+          IE_TEN=1;
+        }
       }else{
-        IE_TEN=1;
+        limpiar_pantalla=1;
+        if (IE_TEN>1){
+          IE_TEN--;
+        }else{
+          IE_TEN=4;
+        }
       }
-    }else{
-      limpiar_pantalla=1;
-      if (IE_TEN>1){
-        IE_TEN--;
-      }else{
-        IE_TEN=4;
-      }
+      ultimaInterrupcion = tiempoInterrupcion;          // Guarda valor actualizado del tiempo
     }
   }else if(pantalla==3){
     limpiar_pantalla=1;
